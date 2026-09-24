@@ -1,22 +1,27 @@
 <!DOCTYPE html>
-<html lang="it">
+<html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Biblioteca</title>
+    <title>Library Catalog</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <style>
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            max-width: 1000px;
+            font-family: Arial, sans-serif;
+            max-width: 1100px;
             margin: 40px auto;
             padding: 20px;
         }
 
         h1 {
             text-align: center;
+        }
+
+        .top-bar {
+            margin-bottom: 20px;
         }
 
         .search-container {
@@ -26,83 +31,179 @@
         }
 
         input {
-            flex: 1;
             padding: 10px;
             font-size: 16px;
         }
 
+        #searchText {
+            flex: 1;
+        }
+
         button {
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 10px 15px;
             cursor: pointer;
         }
 
         .book-card {
-            border: 1px solid #cccccc;
+            border: 1px solid #ccc;
             border-radius: 8px;
             padding: 15px;
             margin-top: 15px;
-            background-color: #f9f9f9;
+            background-color: #f8f8f8;
+        }
+
+        .book-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .book-title {
             font-size: 22px;
             font-weight: bold;
-            margin-bottom: 10px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 10px;
         }
 
         th,
         td {
-            border: 1px solid #dddddd;
+            border: 1px solid #ddd;
             padding: 8px;
-            text-align: left;
         }
 
         th {
-            background-color: #eeeeee;
+            background-color: #efefef;
             width: 220px;
+            text-align: left;
         }
 
-        .message {
-            margin-top: 20px;
+        .admin-panel {
+            margin-top: 15px;
+            margin-bottom: 20px;
             padding: 10px;
-            background-color: #ffffe0;
-            border: 1px solid #cccc99;
+            border: 1px solid #ccc;
+            background: #fffff0;
+        }
+
+        .delete-btn {
+            background-color: #c62828;
+            color: white;
+            border: 0;
+        }
+
+        .import-btn {
+            background-color: #1565c0;
+            color: white;
+            border: 0;
+        }
+
+        .info {
+            padding: 10px;
+            background: #f1f1f1;
+            border-radius: 5px;
+            margin-top: 10px;
         }
     </style>
 </head>
+
 <body>
 
-    <h1>📚 Biblioteca</h1>
+    <h1>📚 Library Catalog</h1>
+
+    <div id="accessPanel" class="top-bar">
+
+        <input
+            type="password"
+            id="accessCode"
+            placeholder="Library Access Code">
+
+        <button onclick="unlockAdmin()">
+            Access
+        </button>
+
+    </div>
+
+    <div
+        id="adminPanel"
+        class="admin-panel"
+        style="display:none;">
+
+        <strong>Administrator Mode</strong>
+
+        <br><br>
+
+        <input
+            type="file"
+            id="csvFile"
+            accept=".csv">
+
+        <button
+            class="import-btn"
+            onclick="importCsv()">
+            Import CSV
+        </button>
+
+    </div>
 
     <div class="search-container">
+
         <input
-            type="text"
             id="searchText"
-            placeholder="Cerca per titolo o autore">
-        <button onclick="searchBooks()">Cerca</button>
+            type="text"
+            placeholder="Search by title or author">
+
+        <button onclick="searchBooks()">
+            Search
+        </button>
+
     </div>
 
     <div id="results"></div>
 
     <script>
 
+        let isAdmin = false;
+
         const supabaseUrl =
             "https://baixuvdynobyomwpklmr.supabase.co";
 
         const supabaseKey =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhaXh1dmR5bm9ieW9td3BrbG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyMzk3OTUsImV4cCI6MjEwNTgxNTc5NX0.Jg9QDyV9YvCo15P8cO5LuKjjdN_-KAdMrNGhTxKhsEg";
+            "YOUR_ANON_KEY_HERE";
 
         const client =
             supabase.createClient(
                 supabaseUrl,
                 supabaseKey
             );
+
+        function unlockAdmin() {
+
+            const code =
+                document.getElementById("accessCode").value;
+
+            if (code === "MSMK") {
+
+                isAdmin = true;
+
+                document.getElementById(
+                    "accessPanel"
+                ).style.display = "none";
+
+                document.getElementById(
+                    "adminPanel"
+                ).style.display = "block";
+
+                searchBooks();
+
+            } else {
+
+                alert("Invalid Access Code");
+            }
+        }
 
         async function searchBooks() {
 
@@ -119,59 +220,84 @@
             if (searchText !== "") {
 
                 query = query.or(
-                    "title.ilike.%" + searchText + "%," +
-                    "author.ilike.%" + searchText + "%"
+                    `title.ilike.%${searchText}%,author.ilike.%${searchText}%`
                 );
             }
 
-            const { data, error } = await query;
+            const { data, error } =
+                await query.order(
+                    "title",
+                    { ascending: true }
+                );
 
             const results =
                 document.getElementById("results");
 
             if (error) {
+
                 results.innerHTML =
-                    "<div class='message'>Errore: "
-                    + error.message +
-                    "</div>";
+                    `<div class="info">
+                        Error: ${error.message}
+                    </div>`;
 
                 console.error(error);
+
                 return;
             }
 
             if (!data || data.length === 0) {
 
                 results.innerHTML =
-                    "<div class='message'>Nessun libro trovato.</div>";
+                    `<div class="info">
+                        No books found.
+                    </div>`;
 
                 return;
             }
 
             let html = "";
 
-            data.forEach(function(book) {
+            data.forEach(book => {
 
                 html += `
                     <div class="book-card">
 
-                        <div class="book-title">
-                            ${book.title || ""}
+                        <div class="book-header">
+
+                            <div class="book-title">
+                                ${book.title || ""}
+                            </div>
+
+                            ${isAdmin
+                                ? `<button
+                                    class="delete-btn"
+                                    onclick="deleteBook(${book.id})">
+                                    Delete
+                                   </button>`
+                                : ""
+                              }
+
                         </div>
 
                         <table>
 
                             <tr>
-                                <th>Autore</th>
+                                <th>ID</th>
+                                <td>${book.id || ""}</td>
+                            </tr>
+
+                            <tr>
+                                <th>Author</th>
                                 <td>${book.author || ""}</td>
                             </tr>
 
                             <tr>
-                                <th>Lingua</th>
+                                <th>Language</th>
                                 <td>${book.language || ""}</td>
                             </tr>
 
                             <tr>
-                                <th>Sezione</th>
+                                <th>Section</th>
                                 <td>${book.section || ""}</td>
                             </tr>
 
@@ -181,27 +307,7 @@
                             </tr>
 
                             <tr>
-                                <th>Editore</th>
-                                <td>${book.publisher || ""}</td>
-                            </tr>
-
-                            <tr>
-                                <th>Anno pubblicazione</th>
-                                <td>${book.publication_year || ""}</td>
-                            </tr>
-
-                            <tr>
-                                <th>Genere</th>
-                                <td>${book.genre || ""}</td>
-                            </tr>
-
-                            <tr>
-                                <th>URL Copertina</th>
-                                <td>${book.cover_url || ""}</td>
-                            </tr>
-
-                            <tr>
-                                <th>Note</th>
+                                <th>Notes</th>
                                 <td>${book.notes || ""}</td>
                             </tr>
 
@@ -214,7 +320,106 @@
             results.innerHTML = html;
         }
 
+        async function deleteBook(id) {
+
+            if (!confirm("Delete this book?")) {
+                return;
+            }
+
+            const { error } =
+                await client
+                .from("Books1")
+                .delete()
+                .eq("id", id);
+
+            if (error) {
+
+                alert(error.message);
+                return;
+            }
+
+            alert("Book deleted");
+
+            searchBooks();
+        }
+
+        async function importCsv() {
+
+            const file =
+                document.getElementById("csvFile")
+                .files[0];
+
+            if (!file) {
+
+                alert("Select a CSV file");
+                return;
+            }
+
+            const text =
+                await file.text();
+
+            const rows =
+                text
+                .split(/\r?\n/)
+                .filter(
+                    row => row.trim() !== ""
+                );
+
+            const headers =
+                rows[0]
+                .split(",")
+                .map(
+                    h => h.trim()
+                );
+
+            const books = [];
+
+            for (let i = 1; i < rows.length; i++) {
+
+                const values =
+                    rows[i].split(",");
+
+                const book = {};
+
+                headers.forEach((header, index) => {
+
+                    if (header === "id") {
+                        return;
+                    }
+
+                    book[header] =
+                        values[index]
+                        ? values[index].trim()
+                        : null;
+                });
+
+                books.push(book);
+            }
+
+            const { error } =
+                await client
+                .from("Books1")
+                .insert(books);
+
+            if (error) {
+
+                alert(error.message);
+                console.error(error);
+                return;
+            }
+
+            alert(
+                books.length +
+                " books imported successfully"
+            );
+
+            searchBooks();
+        }
+
+        searchBooks();
+
     </script>
 
 </body>
+
 </html>
