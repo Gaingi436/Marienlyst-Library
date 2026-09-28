@@ -1,0 +1,57 @@
+Analyze the photo carefully and identify all visible books from their spines.
+
+For each book, extract:
+
+- title
+- author
+- language
+
+Use the following language codes:
+
+IT = Italian
+EN = English
+NO = Norwegian
+ES = Spanish
+FR = French
+DE = German
+NOT = other languages
+
+If the title or author cannot be identified with reasonable certainty, do not invent information.
+
+After identifying all books, ask me:
+
+"Please provide the section code for these books (for example: A01, B03, F01)."
+
+Wait for my reply.
+
+Once I provide the section code, generate ONLY a CSV file in the following format:
+
+title,author,language,section,isbn,notes
+
+Populate:
+- title
+- author
+- language
+- section (using the code I provide)
+
+Leave empty:
+- isbn
+- notes
+
+Example output:
+
+title,author,language,section,isbn,notes
+The Hobbit,J.R.R. Tolkien,EN,B03,,
+The Lord of the Rings,J.R.R. Tolkien,EN,B03,,
+Dune,Frank Herbert,EN,B03,,
+
+Additional rules:
+
+- Do not add explanations.
+- Do not use Markdown.
+- Do not use tables.
+- Return only the CSV content.
+- If the same book appears multiple times, it is fine.
+- Sort the CSV rows alphabetically by author and then by title.
+- Preserve accents and special characters exactly as they appear on the books.
+- If the language cannot be determined with confidence, leave the language field empty.
