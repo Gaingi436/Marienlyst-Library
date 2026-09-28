@@ -1,499 +1,238 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Library Catalog</title>
-
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-    <style>
-
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 1200px;
-            margin: 40px auto;
-            padding: 20px;
-        }
-
-        h1 {
-            text-align: center;
-        }
-
-        .toolbar {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        input,
-        select {
-            padding: 10px;
-            font-size: 16px;
-        }
-
-        #searchText {
-            flex: 1;
-            min-width: 250px;
-        }
-
-        button {
-            padding: 10px 15px;
-            cursor: pointer;
-        }
-
-        .book-card {
-            border: 1px solid #cccccc;
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-            background-color: #f9f9f9;
-        }
-
-        .book-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .book-title {
-            font-size: 22px;
-            font-weight: bold;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-        }
-
-        td,
-        th {
-            border: 1px solid #dddddd;
-            padding: 8px;
-        }
-
-        th {
-            background-color: #eeeeee;
-            width: 220px;
-            text-align: left;
-        }
-
-        .admin-panel {
-            padding: 10px;
-            border: 1px solid #cccccc;
-            background: #fffff0;
-            margin-bottom: 20px;
-        }
-
-        .delete-btn {
-            background: #cc0000;
-            color: white;
-            border: none;
-        }
-
-        .import-btn {
-            background: #0066cc;
-            color: white;
-            border: none;
-        }
-
-        .info-box {
-            background: #f4f4f4;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-        }
-
-    </style>
-
-</head>
-
-<body>
-
-    <h1>📚 Library Catalog</h1>
-
-    <div id="accessPanel">
-
-        <input
-            type="password"
-            id="accessCode"
-            placeholder="Library Access Code">
-
-        <button onclick="unlockAdmin()">
-            Access
-        </button>
-
-    </div>
-
-<div
-    id="adminPanel"
-    class="admin-panel"
-    style="display:none">
-
-    <strong>Administrator Mode</strong>
-
-    <br><br>
-
-    <a href="#"
-       onclick� Copy Prompt for AI
-    </a>
-
-    &nbsp;&nbsp;|&nbsp;&nbsp;
-
-    <a href="#"
-             📚 Copy Complex Prompt
-    </a>
-
-    &nbsp;&nbsp;|&nbsp;&nbsp;
-
-    <a href="#"
-       id="helpToggle"
-       onclick="toggleHelp(); return false;">
-       Show More          display:none;
-            margin-top:15px;
-        ">
-
-        <h3>How to import books using AI</h3>
-
-        <ol>
-
-            <li>
-                Take a photo of one or more book spines.
-            </li>
-
-            <li>
-                Open ChatGPT, Microsoft Copilot, Gemini
-                or another AI application.
-            </li>
-
-            <li>
-                Upload the image.
-            </li>
-
-            <li>
-                Use one of the prompts above.
-            </li>
-
-            <li>
-                "Copy Prompt for AI" copies a short prompt
-                containing a link to the online instructions.
-            </li>
-
-            <li>
-                "Copy Complex Prompt" copies the full prompt.
-                Use it when the selected AI cannot access
-                GitHub or external links.
-            </li>
-
-            <li>
-                The prompts normally remain the same.
-                You do not need to copy them again for
-                every image.
-            </li>
-
-            <li>
-                When the AI asks for the section code,
-                enter the correct library section
-                (for example A01, B03 or F01).
-            </li>
-
-            <li>
-                The AI will generate a CSV file.
-            </li>
-
-            <li>
-                Save the CSV file locally.
-            </li>
-
-            <li>
-                Click "Choose File" and then
-                "Import CSV" to add the books
-                to the catalog.
-            </li>
-
-        </ol>
-
-    </div>
-
-    <br><br>
-
-    <input
-        type="file"
-        id="csvFile"
-        accept=".csv">
-
-    <button
-        class="import-btn"
-        onclick="importCsv()">
-        Import CSV
-    </button>
-
-</div>
-
-    <br><br>
-
-    <input
-        type="file"
-        id="csvFile"
-        accept=".csv">
-
-    <button
-        class="import-btn"
-        onclick="importCsv()">
-        Import CSV
-    </button>
-
-</div>
-
-    <div class="toolbar">
-
-        <input
-            type="text"
-            id="searchText"
-            placeholder="Search by title or author">
-
-        <select id="languageFilter">
-            <option value="">All Languages</option>
-        </select>
-
-        <select id="sortBy">
-            <option value="title">Sort: Title</option>
-            <option value="author">Sort: Author</option>
-            <option value="language">Sort: Language</option>
-            <option value="section">Sort: Section</option>
-        </select>
-
-    </div>
-
-    <div id="bookCount" class="info-box"></div>
-
-    <div id="results"></div>
-
-    <script>
-
-        let isAdmin = false;
-
-        const supabaseUrl =
-            "https://baixuvdynobyomwpklmr.supabase.co";
-
-        const supabaseKey =
-            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhaXh1dmR5bm9ieW9td3BrbG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyMzk3OTUsImV4cCI6MjEwNTgxNTc5NX0.Jg9QDyV9YvCo15P8cO5LuKjjdN_-KAdMrNGhTxKhsEg";
-
-        const client =
-            supabase.createClient(
-                supabaseUrl,
-                supabaseKey
-            );
-
-		function toggleHelp() {
-
-			const help =
-				document.getElementById("helpSection");
-
-			const toggle =
-				document.getElementById("helpToggle");
-
-			if (help.style.display === "none") {
-
-				help.style.display = "block";
-
-				toggle.innerText = "Show Less";
-
-			} else {
-
-				help.style.display = "none";
-
-				toggle.innerText = "Show More";
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Library Catalog</title>
+
+        <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 20px;
+        background: #f7f7f7;
+    }
+    h1 {
+        text-align: center;
+    }
+    .admin-panel,
+    .info-box,
+    .book-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+    .admin-panel {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    .toolbar {
+        display: flex;
+        gap: 10px;
+        margin: 20px 0;
+    }
+    #searchText {
+        flex: 1;
+    }
+    input,
+    select,
+    button {
+        padding: 10px;
+    }
+    .csv-import {
+        margin-top: 15px;
+    }
+    .admin-links a {
+        margin-right: 12px;
+    }
+    .book-card {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    .book-header {
+        display: flex;
+        justify-content: space-between;
+    }
+    .book-title {
+        font-size: 22px;
+        font-weight: bold;
+    }
+    .info-box {
+        padding: 12px;
+        margin-bottom: 15px;
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th,
+    td {
+        border: 1px solid #ddd;
+        padding: 8px;
+    }
+    th {
+        background: #f3f3f3;
+        text-align: left;
+        width: 200px;
+    }
+    .delete-btn {
+        background: #c62828;
+        color: #fff;
+        border: none;
+    }
+    .import-btn {
+        background: #0066cc;
+        color: #fff;
+        border: none;
+    }
+    .help-section {
+        background: #f8f9fb;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        padding: 15px;
+        margin: 15px 0;
+    }
+</style>
+    </head>
+
+    <body>
+        <h1>📚 Library Catalog</h1>
+
+        <div id="accessPanel">
+            <input type="password" id="accessCode" placeholder="Library Access Code" /><button onclick="unlockAdmin()">
+                Access
+            </button>
+        </div>
+        <div id="adminPanel" class="admin-panel" style="display: none">
+            <strong>Administrator Mode</strong>
+            <div class="admin-links">
+                <br />
+                <a href="#" onclick="copyAiPrompt();return false;">📋 Copy Prompt for AI</a> |
+                <a
+                    href="https://github.com/Gaingi436/Marienlyst-Library/blob/main/book-spine-extraction-prompt.txt"
+                    target="_blank"
+                    >📚 Open Complex Prompt</a
+                >
+                |
+                <a href="#" id="helpToggle" onclick="toggleHelp();return false;">Show More</a>
+            </div>
+            <div id="helpSection" class="help-section" style="display: none">
+                <h3>How to import books using AI</h3>
+                <ol>
+                    <li>Take a photo of book spines.</li>
+                    <li>Open an AI application.</li>
+                    <li>Upload the image.</li>
+                    <li>Use "Copy Prompt for AI" to paste AI prompt with the image.</li>
+                    <li>Provide section code when asked.</li>
+                    <li>Save generated CSV.</li>
+                    <li>Import CSV below.</li>
+                </ol>
+            </div>
+            <div class="csv-import">
+                <input type="file" id="csvFile" accept=".csv" /><button class="import-btn" onclick="importCsv()">
+                    Import CSV
+                </button>
+            </div>
+        </div>
+        <div class="toolbar">
+            <input type="text" id="searchText" placeholder="Search by title or author" /><select id="languageFilter">
+                <option value="">All Languages</option></select
+            ><select id="sortBy">
+                <option value="title">Sort: Title</option>
+                <option value="author">Sort: Author</option>
+                <option value="language">Sort: Language</option>
+                <option value="section">Sort: Section</option>
+            </select>
+        </div>
+        <div id="bookCount" class="info-box">Enter a search term</div>
+        <div id="results"></div>
+
+        <script>
+            let isAdmin = false;
+
+            const supabaseUrl = "https://baixuvdynobyomwpklmr.supabase.co";
+
+            const supabaseKey =
+                "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhaXh1dmR5bm9ieW9td3BrbG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyMzk3OTUsImV4cCI6MjEwNTgxNTc5NX0.Jg9QDyV9YvCo15P8cO5LuKjjdN_-KAdMrNGhTxKhsEg";
+
+            const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+            function toggleHelp() {
+				const h=document.getElementById('helpSection');
+				const t=document.getElementById('helpToggle');
+				
+				if(h.style.display==='none'){
+					h.style.display='block';
+					t.textContent='Show Less';
+				}else{
+					h.style.display='none';t.textContent='Show More';
+				}
 			}
-		}
 
-		function copyAiPrompt() {
+			function copyAiPrompt() {
 
-			const prompt =
-		`Use the instructions contained in this document:
-		https://github.com/Gaingi436/Marienlyst-Library/blob/main/book-spine-extraction-prompt.txt
+				navigator.clipboard.writeText(
+					"Use the instructions contained in this document:\n" +
+					"https://github.com/Gaingi436/Marienlyst-Library/blob/main/book-spine-extraction-prompt.txt\n\n" +
+					"Apply them to the attached image."
+				);
 
-		Apply them to the attached image.`;
+				alert("Prompt copied");
+			}
+							
+			function unlockAdmin() {
+                const code = document.getElementById("accessCode").value;
 
-			navigator.clipboard.writeText(prompt);
+                if (code === "MSMK") {
+                    isAdmin = true;
 
-			alert("AI prompt copied to clipboard");
-		}
+                    document.getElementById("accessPanel").style.display = "none";
 
-		function copyComplexPrompt() {
+                    document.getElementById("adminPanel").style.display = "block";
 
-			const prompt = `PASTE HERE THE COMPLETE CONTENT OF
-		book-spine-extraction-prompt.txt`;
-
-			navigator.clipboard.writeText(prompt);
-
-			alert("Complex prompt copied to clipboard");
-		}
-
-        function unlockAdmin() {
-
-            const code =
-                document.getElementById(
-                    "accessCode"
-                ).value;
-
-            if (code === "MSMK") {
-
-                isAdmin = true;
-
-                document.getElementById(
-                    "accessPanel"
-                ).style.display = "none";
-
-                document.getElementById(
-                    "adminPanel"
-                ).style.display = "block";
-
-                searchBooks();
-
-            } else {
-
-                alert(
-                    "Invalid Access Code"
-                );
-            }
-        }
-
-        async function loadLanguages() {
-
-            const { data, error } =
-                await client
-                    .from("Books1")
-                    .select("language");
-
-            if (error) {
-                return;
+                } else {
+                    alert("Invalid Access Code");
+                }
             }
 
-            const select =
-                document.getElementById(
-                    "languageFilter"
-                );
+            async function searchBooks() {
+                const searchText = document.getElementById("searchText").value.trim();
 
-            const languages =
-                [...new Set(
-                    data
-                        .map(x => x.language)
-                        .filter(x => x)
-                )]
-                .sort();
+                let query = client.from("Books1").select("*");
 
-            languages.forEach(language => {
+                if (searchText !== "") {
+                    query = query.or(`title.ilike.%${searchText}%,author.ilike.%${searchText}%`);
+                }
 
-                const option =
-                    document.createElement(
-                        "option"
-                    );
+                const { data, error } = await query.order("title", { ascending: true });
 
-                option.value =
-                    language;
+                const results = document.getElementById("results");
 
-                option.textContent =
-                    language;
+                if (error) {
+                    results.innerHTML = `<div class="info">
+                        Error: ${error.message}
+                    </div>`;
 
-                select.appendChild(option);
+                    console.error(error);
 
-            });
-        }
+                    return;
+                }
 
-        async function searchBooks() {
+                if (!data || data.length === 0) {
+                    results.innerHTML = `<div class="info">
+                        No books found.
+                    </div>`;
 
-            const searchText =
-                document
-                    .getElementById(
-                        "searchText"
-                    )
-                    .value
-                    .trim();
+                    return;
+                }
 
-            const language =
-                document
-                    .getElementById(
-                        "languageFilter"
-                    )
-                    .value;
+                let html = "";
 
-            const sortBy =
-                document
-                    .getElementById(
-                        "sortBy"
-                    )
-                    .value;
-
-            let query =
-                client
-                    .from("Books1")
-                    .select("*");
-
-            if (searchText !== "") {
-
-                query = query.or(
-                    `title.ilike.%${searchText}%,author.ilike.%${searchText}%`
-                );
-            }
-
-            if (language !== "") {
-
-                query =
-                    query.eq(
-                        "language",
-                        language
-                    );
-            }
-
-            query =
-                query.order(
-                    sortBy,
-                    {
-                        ascending: true
-                    }
-                );
-
-            const { data, error } =
-                await query;
-
-            const results =
-                document.getElementById(
-                    "results"
-                );
-
-            if (error) {
-
-                results.innerHTML =
-                    "<div class='info-box'>Error: "
-                    + error.message +
-                    "</div>";
-
-                return;
-            }
-
-            document.getElementById(
-                "bookCount"
-            ).innerHTML =
-                "Books found: "
-                + data.length;
-
-            if (data.length === 0) {
-
-                results.innerHTML =
-                    "<div class='info-box'>No books found.</div>";
-
-                return;
-            }
-
-            let html = "";
-
-            data.forEach(book => {
-
-                html += `
+                data.forEach((book) => {
+                    html += `
                     <div class="book-card">
 
                         <div class="book-header">
@@ -504,20 +243,22 @@
 
                             ${
                                 isAdmin
-                                ?
-                                `<button
+                                    ? `<button
                                     class="delete-btn"
                                     onclick="deleteBook(${book.id})">
                                     Delete
-                                </button>`
-                                :
-                                ""
+                                   </button>`
+                                    : ""
                             }
 
                         </div>
 
                         <table>
 
+                            <tr>
+                                <th>ID</th>
+                                <td>${book.id || ""}</td>
+                            </tr>
 
                             <tr>
                                 <th>Author</th>
@@ -532,7 +273,12 @@
                             <tr>
                                 <th>Section</th>
                                 <td>${book.section || ""}</td>
-                            </tr> 
+                            </tr>
+
+                            <tr>
+                                <th>ISBN</th>
+                                <td>${book.isbn || ""}</td>
+                            </tr>
 
                             <tr>
                                 <th>Notes</th>
@@ -543,159 +289,72 @@
 
                     </div>
                 `;
-            });
-
-            results.innerHTML = html;
-        }
-
-        async function deleteBook(id) {
-
-            if (
-                !confirm(
-                    "Delete this book?"
-                )
-            ) {
-                return;
-            }
-
-            const { error } =
-                await client
-                    .from("Books1")
-                    .delete()
-                    .eq("id", id);
-
-            if (error) {
-
-                alert(
-                    error.message
-                );
-
-                return;
-            }
-
-            searchBooks();
-        }
-
-        async function importCsv() {
-
-            const file =
-                document
-                    .getElementById(
-                        "csvFile"
-                    )
-                    .files[0];
-
-            if (!file) {
-
-                alert(
-                    "Select a CSV file"
-                );
-
-                return;
-            }
-
-            const text =
-                await file.text();
-
-            const rows =
-                text
-                    .split(/\r?\n/)
-                    .filter(
-                        r => r.trim() !== ""
-                    );
-
-            const books = [];
-
-            for (
-                let i = 0;
-                i < rows.length;
-                i++
-            ) {
-
-                const values =
-                    rows[i].split(",");
-
-                books.push({
-
-                    title:
-                        values[0] || null,
-
-                    author:
-                        values[1] || null,
-
-                    language:
-                        values[2] || null,
-
-                    section:
-                        values[3] || null,
-
-                    isbn:
-                        values[4] || null,
-
-                    notes:
-                        values[5] || null
-
                 });
 
+                results.innerHTML = html;
             }
 
-            const { error } =
-                await client
-                    .from("Books1")
-                    .insert(books);
+            async function deleteBook(id) {
+                if (!confirm("Delete this book?")) {
+                    return;
+                }
 
-            if (error) {
+                const { error } = await client.from("Books1").delete().eq("id", id);
 
-                alert(
-                    error.message
-                );
+                if (error) {
+                    alert(error.message);
+                    return;
+                }
 
-                return;
+                alert("Book deleted");
+
+                searchBooks();
             }
 
-            alert(
-                books.length +
-                " books imported"
-            );
+            async function importCsv() {
+                const file = document.getElementById("csvFile").files[0];
 
-            await loadLanguages();
-            searchBooks();
-        }
+                if (!file) {
+                    alert("Select a CSV file");
+                    return;
+                }
 
-        document
-            .getElementById(
-                "searchText"
-            )
-            .addEventListener(
-                "input",
-                searchBooks
-            );
+                const text = await file.text();
 
-        document
-            .getElementById(
-                "languageFilter"
-            )
-            .addEventListener(
-                "change",
-                searchBooks
-            );
+                const rows = text.split(/\r?\n/).filter((row) => row.trim() !== "");
 
-        document
-            .getElementById(
-                "sortBy"
-            )
-            .addEventListener(
-                "change",
-                searchBooks
-            );
+                const headers = rows[0].split(",").map((h) => h.trim());
 
-        loadLanguages();
-        document.getElementById("bookCount").innerHTML =
-		"Enter a search term";
-		document.getElementById("results").innerHTML = "";
+                const books = [];
 
-    </script>
+                for (let i = 1; i < rows.length; i++) {
+                    const values = rows[i].split(",");
 
-</body>
+                    const book = {};
 
+                    headers.forEach((header, index) => {
+                        if (header === "id") {
+                            return;
+                        }
+
+                        book[header] = values[index] ? values[index].trim() : null;
+                    });
+
+                    books.push(book);
+                }
+
+                const { error } = await client.from("Books1").insert(books);
+
+                if (error) {
+                    alert(error.message);
+                    console.error(error);
+                    return;
+                }
+
+                alert(books.length + " books imported successfully");
+
+            }
+
+        </script>
+    </body>
 </html>
