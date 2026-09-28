@@ -136,6 +136,12 @@
         <strong>Administrator Mode</strong>
 
         <br><br>
+		
+		<button onclick="copyAiPrompt()">
+			Copy Prompt for AI
+		</button>
+		
+		<br><br>
 
         <input
             type="file"
@@ -560,7 +566,9 @@
             );
 
         loadLanguages();
-        searchBooks();
+        document.getElementById("bookCount").innerHTML =
+		"Enter a search term";
+		document.getElementById("results").innerHTML = "";
 
     </script>
 
