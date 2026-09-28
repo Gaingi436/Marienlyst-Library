@@ -128,33 +128,99 @@
 
     </div>
 
-    <div
-        id="adminPanel"
-        class="admin-panel"
-        style="display:none">
+<div
+    id="adminPanel"
+    class="admin-panel"
+    style="display:none">
 
-        <strong>Administrator Mode</strong>
+    <strong>Administrator Mode</strong>
 
-        <br><br>
-		
-		<button onclick="copyAiPrompt()">
-			Copy Prompt for AI
-		</button>
-		
-		<br><br>
+    <br><br>
 
-        <input
-            type="file"
-            id="csvFile"
-            accept=".csv">
+    # return false;">
+        📋 Copy Prompt for AI
+    </a>
 
-        <button
-            class="import-btn"
-            onclick="importCsv()">
-            Import CSV
-        </button>
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+
+    <areturn false;">
+        📚 Copy Complex Prompt
+    </a>
+
+    &nbsp;&nbsp;|&nbsp;&nbsp;
+
+    <a href="#"
+       id="helpToggle"
+       onclick="toggleHelp(); return false;">
+        Show More
+    </a>
+
+    <div id="helpSection" style="display:none; margin-top:15ol>
+            <li>Take a photo of one or more book spines.</li>
+
+            <li>
+                Open your preferred AI application
+                (ChatGPT, Copilot, Gemini, etc.).
+            </li>
+
+            <li>
+                Upload the photo and use one of the prompts
+                available above.
+            </li>
+
+            <li>
+                "Copy Prompt for AI" copies the short prompt
+                that references the online instruction file.
+            </li>
+
+            <li>
+                "Copy Complex Prompt" copies the complete prompt.
+                Use it if your AI application cannot read online
+                documents or GitHub links.
+            </li>
+
+            <li>
+                The prompt is always the same.
+                You do not need to copy it again for every image.
+            </li>
+
+            <li>
+                When the AI asks for a section code,
+                provide the library section
+                (for example A01, B03 or F01).
+            </li>
+
+            <li>
+                The AI will generate a CSV file.
+            </li>
+
+            <li>
+                Save the CSV locally.
+            </li>
+
+            <li>
+                Use the controls below to import the CSV
+                into the library database.
+            </li>
+
+        </ol>
 
     </div>
+
+    <br><br>
+
+    <input
+        type="file"
+        id="csvFile"
+        accept=".csv">
+
+    <button
+        class="import-btn"
+        onclick="importCsv()">
+        Import CSV
+    </button>
+
+</div>
 
     <div class="toolbar">
 
@@ -196,6 +262,28 @@
                 supabaseKey
             );
 
+		function toggleHelp() {
+
+			const help =
+				document.getElementById("helpSection");
+
+			const toggle =
+				document.getElementById("helpToggle");
+
+			if (help.style.display === "none") {
+
+				help.style.display = "block";
+
+				toggle.innerText = "Show Less";
+
+			} else {
+
+				help.style.display = "none";
+
+				toggle.innerText = "Show More";
+			}
+		}
+
 		function copyAiPrompt() {
 
 			const prompt =
@@ -207,6 +295,16 @@
 			navigator.clipboard.writeText(prompt);
 
 			alert("AI prompt copied to clipboard");
+		}
+
+		function copyComplexPrompt() {
+
+			const prompt = `PASTE HERE THE COMPLETE CONTENT OF
+		book-spine-extraction-prompt.txt`;
+
+			navigator.clipboard.writeText(prompt);
+
+			alert("Complex prompt copied to clipboard");
 		}
 
         function unlockAdmin() {
