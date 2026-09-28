@@ -33,6 +33,7 @@
         display: flex;
         gap: 10px;
         margin: 20px 0;
+		flex-wrap: wrap;
     }
     #searchText {
         flex: 1;
@@ -198,101 +199,181 @@
                 }
             }
 
-            async function searchBooks() {
-                const searchText = document.getElementById("searchText").value.trim();
+        async function loadLanguages() {
 
-                let query = client.from("Books1").select("*");
+            const { data, error } =
+                await client
+                    .from("Books1")
+                    .select("language");
 
-                if (searchText !== "") {
-                    query = query.or(`title.ilike.%${searchText}%,author.ilike.%${searchText}%`);
-                }
+            if (error) {
+                return;
+            }
 
-                const { data, error } = await query.order("title", { ascending: true });
+            const select =
+                document.getElementById(
+                    "languageFilter"
+                );
 
-                const results = document.getElementById("results");
+            const languages =
+                [...new Set(
+                    data
+                        .map(x => x.language)
+                        .filter(x => x)
+                )]
+                .sort();
 
-                if (error) {
-                    results.innerHTML = `<div class="info">
-                        Error: ${error.message}
-                    </div>`;
+            languages.forEach(language => {
 
-                    console.error(error);
+                const option =
+                    document.createElement(
+                        "option"
+                    );
 
-                    return;
-                }
+                option.value =
+                    language;
 
-                if (!data || data.length === 0) {
-                    results.innerHTML = `<div class="info">
-                        No books found.
-                    </div>`;
+                option.textContent =
+                    language;
 
-                    return;
-                }
+                select.appendChild(option);
 
-                let html = "";
+            });
+        }
+		
+        async function searchBooks() {
 
-                data.forEach((book) => {
-                    html += `
-                    <div class="book-card">
+            const searchText =
+                document
+                    .getElementById(
+                        "searchText"
+                    )
+                    .value
+                    .trim();
 
-                        <div class="book-header">
+            const language =
+                document
+                    .getElementById(
+                        "languageFilter"
+                    )
+                    .value;
 
-                            <div class="book-title">
+            const sortBy =
+                document
+                    .getElementById(
+                        "sortBy"
+                    )
+                    .value;
+
+            let query =
+                client
+                    .from("Books1")
+                    .select("*");
+
+            if (searchText !== "") {
+
+                query = query.or(
+                    `title.ilike.%${searchText}%,author.ilike.%${searchText}%`
+                );
+            }
+
+            if (language !== "") {
+
+                query =
+                    query.eq(
+                        "language",
+                        language
+                    );
+            }
+
+            query =
+                query.order(
+                    sortBy,
+                    {
+                        ascending: true
+                    }
+                );
+
+            const { data, error } =
+                await query;
+
+            const results =
+                document.getElementById(
+                    "results"
+                );
+
+            if (error) {
+
+                results.innerHTML =
+                    "						<div class='info-box'>Error: "
+                    + error.message +
+                    "						</div>";
+
+                return;
+            }
+
+            document.getElementById(
+                "bookCount"
+            ).innerHTML =
+                "Books found: "
+                + data.length;
+
+            if (data.length === 0) {
+
+                results.innerHTML =
+                    "						<div class='info-box'>No books found.</div>";
+
+                return;
+            }
+
+            let html = "";
+
+            data.forEach(book => {
+
+                html += `
+						<div class="book-card">
+						<div class="book-header">
+							<div class="book-title">
                                 ${book.title || ""}
-                            </div>
+								</div>
 
                             ${
                                 isAdmin
-                                    ? `<button
-                                    class="delete-btn"
-                                    onclick="deleteBook(${book.id})">
+                                ?
+                                `								<button class="delete-btn"
+							        onclick="deleteBook(${book.id})">
                                     Delete
-                                   </button>`
-                                    : ""
+								</button>`
+                                :
+                                ""
                             }
 
-                        </div>
-
-                        <table>
-
-                            <tr>
-                                <th>ID</th>
-                                <td>${book.id || ""}</td>
-                            </tr>
-
-                            <tr>
-                                <th>Author</th>
-                                <td>${book.author || ""}</td>
-                            </tr>
-
-                            <tr>
-                                <th>Language</th>
-                                <td>${book.language || ""}</td>
-                            </tr>
-
-                            <tr>
-                                <th>Section</th>
-                                <td>${book.section || ""}</td>
-                            </tr>
-
-                            <tr>
-                                <th>ISBN</th>
-                                <td>${book.isbn || ""}</td>
-                            </tr>
-
-                            <tr>
-                                <th>Notes</th>
-                                <td>${book.notes || ""}</td>
-                            </tr>
-
-                        </table>
-
-                    </div>
+							</div>
+						<table>
+							<tr>
+								<th>Author</th>
+								<td>${book.author || ""}</td>
+							</tr>
+							<tr>
+								<th>Language</th>
+								<td>${book.language || ""}</td>
+							</tr>
+							<tr>
+								<th>Section</th>
+								<td>${book.section || ""}</td>
+							</tr>
+							<tr>
+								<th>Notes</th>
+								<td>${book.notes || ""}</td>
+							</tr>
+						</table>
+					</div>
                 `;
-                });
+            });
 
-                results.innerHTML = html;
-            }
+            results.innerHTML = html;
+        }		
+
 
             async function deleteBook(id) {
                 if (!confirm("Delete this book?")) {
