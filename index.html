@@ -139,9 +139,11 @@
             </div>
         </div>
         <div class="toolbar">
-            <input type="text" id="searchText" placeholder="Search by title or author" /><select id="languageFilter">
-                <option value="">All Languages</option></select
-            ><select id="sortBy">
+            <input type="text" id="searchText" placeholder="Search by title or author" />
+			<select id="languageFilter">
+                <option value="">All Languages</option>
+			</select>
+			<select id="sortBy">
                 <option value="title">Sort: Title</option>
                 <option value="author">Sort: Author</option>
                 <option value="language">Sort: Language</option>
@@ -435,7 +437,35 @@
                 alert(books.length + " books imported successfully");
 
             }
+						
+			document
+				.getElementById("searchText")
+				.addEventListener(
+					"input",
+					searchBooks
+				);
 
+			document
+				.getElementById("languageFilter")
+				.addEventListener(
+					"change",
+					searchBooks
+				);
+
+			document
+				.getElementById("sortBy")
+				.addEventListener(
+					"change",
+					searchBooks
+				);
+
+			loadLanguages();
+
+			document.getElementById("bookCount").innerHTML =
+				"Enter a search term";
+
+			document.getElementById("results").innerHTML =
+				"";
         </script>
     </body>
 </html>
