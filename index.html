@@ -137,14 +137,14 @@
 
     <br><br>
 
-    # return false;">
-        📋 Copy Prompt for AI
+    <a href="#"
+       onclick� Copy Prompt for AI
     </a>
 
     &nbsp;&nbsp;|&nbsp;&nbsp;
 
-    <areturn false;">
-        📚 Copy Complex Prompt
+    <a href="#"
+             📚 Copy Complex Prompt
     </a>
 
     &nbsp;&nbsp;|&nbsp;&nbsp;
@@ -152,41 +152,51 @@
     <a href="#"
        id="helpToggle"
        onclick="toggleHelp(); return false;">
-        Show More
-    </a>
+       Show More          display:none;
+            margin-top:15px;
+        ">
 
-    <div id="helpSection" style="display:none; margin-top:15ol>
-            <li>Take a photo of one or more book spines.</li>
+        <h3>How to import books using AI</h3>
+
+        <ol>
 
             <li>
-                Open your preferred AI application
-                (ChatGPT, Copilot, Gemini, etc.).
+                Take a photo of one or more book spines.
             </li>
 
             <li>
-                Upload the photo and use one of the prompts
-                available above.
+                Open ChatGPT, Microsoft Copilot, Gemini
+                or another AI application.
             </li>
 
             <li>
-                "Copy Prompt for AI" copies the short prompt
-                that references the online instruction file.
+                Upload the image.
             </li>
 
             <li>
-                "Copy Complex Prompt" copies the complete prompt.
-                Use it if your AI application cannot read online
-                documents or GitHub links.
+                Use one of the prompts above.
             </li>
 
             <li>
-                The prompt is always the same.
-                You do not need to copy it again for every image.
+                "Copy Prompt for AI" copies a short prompt
+                containing a link to the online instructions.
             </li>
 
             <li>
-                When the AI asks for a section code,
-                provide the library section
+                "Copy Complex Prompt" copies the full prompt.
+                Use it when the selected AI cannot access
+                GitHub or external links.
+            </li>
+
+            <li>
+                The prompts normally remain the same.
+                You do not need to copy them again for
+                every image.
+            </li>
+
+            <li>
+                When the AI asks for the section code,
+                enter the correct library section
                 (for example A01, B03 or F01).
             </li>
 
@@ -195,17 +205,33 @@
             </li>
 
             <li>
-                Save the CSV locally.
+                Save the CSV file locally.
             </li>
 
             <li>
-                Use the controls below to import the CSV
-                into the library database.
+                Click "Choose File" and then
+                "Import CSV" to add the books
+                to the catalog.
             </li>
 
         </ol>
 
     </div>
+
+    <br><br>
+
+    <input
+        type="file"
+        id="csvFile"
+        accept=".csv">
+
+    <button
+        class="import-btn"
+        onclick="importCsv()">
+        Import CSV
+    </button>
+
+</div>
 
     <br><br>
 
