@@ -113,7 +113,7 @@
                 <br />
                 <a href="#" onclick="copyAiPrompt();return false;">📋 Copy Prompt for AI</a> |
                 <a
-                    href="https://github.com/Gaingi436/Marienlyst-Library/blob/main/book-spine-extraction-prompt.txt"
+                    href="https://gaingi436.github.io/Marienlyst-Library/AIprompt.html"
                     target="_blank"
                     >📚 Open Complex Prompt</a
                 >
@@ -179,7 +179,7 @@
 
 				navigator.clipboard.writeText(
 					"Use the instructions contained in this document:\n" +
-					"https://github.com/Gaingi436/Marienlyst-Library/blob/main/book-spine-extraction-prompt.txt\n\n" +
+					"https://gaingi436.github.io/Marienlyst-Library/AIprompt.html" +
 					"Apply them to the attached image."
 				);
 
@@ -266,6 +266,21 @@
                         "sortBy"
                     )
                     .value;
+
+			if (
+				searchText === "" &&
+				language === ""
+			) {
+
+				document.getElementById("bookCount")
+					.innerHTML =
+					"Enter a search term";
+
+				document.getElementById("results")
+					.innerHTML = "";
+
+				return;
+			}
 
             let query =
                 client
