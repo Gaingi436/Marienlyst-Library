@@ -155,7 +155,7 @@
 
 				<hr>			
             <div class="csv-import">
-                <input type="file" id="csvFile" accept=".csv" /><button class="import-btn" onclick="importCsv()">
+                <input type="file" id="csvFile" accept=".csv" multiple /><button class="import-btn" onclick="importCsv()">
                     Import CSV
                 </button>
             </div>
@@ -200,17 +200,19 @@
 			function copyAiPrompt() {
 
 				navigator.clipboard.writeText(
-					"Use the instructions contained in this document:\n" +
+					"Read and follow the instructions at this link:\n" +
 					"https://gaingi436.github.io/Marienlyst-Library/AIprompt.html  \n" +
-					"Apply them to the attached image."
+					"Task: Analyze the attached photo as a data source to identify the books.\n"
+				    "Important: Do NOT generate, edit, or create any images. Provide text output only."				
 				);
 
 				alert("Prompt copied");
 			}
 							
 			function unlockAdmin() {
-                const code = document.getElementById("accessCode").value;
-
+			
+				const code = document.getElementById("accessCode").value.trim().toUpperCase(); 
+                
                 if (code === "MSMK") {
                     isAdmin = true;
 
@@ -535,49 +537,120 @@
 				await loadLanguages();
 			}
 
-            async function importCsv() {
-                const file = document.getElementById("csvFile").files[0];
+			async function importCsv() {
 
-                if (!file) {
-                    alert("Select a CSV file");
-                    return;
-                }
+				const files =
+					document
+						.getElementById("csvFile")
+						.files;
 
-                const text = await file.text();
+				if (files.length === 0) {
 
-                const rows = text.split(/\r?\n/).filter((row) => row.trim() !== "");
+					alert(
+						"Select one or more CSV files"
+					);
 
-                const headers = rows[0].split(",").map((h) => h.trim());
+					return;
+				}
 
-                const books = [];
+				const books = [];
 
-                for (let i = 1; i < rows.length; i++) {
-                    const values = rows[i].split(",");
+				for (const file of files) {
 
-                    const book = {};
+					const text =
+						await file.text();
 
-                    headers.forEach((header, index) => {
-                        if (header === "id") {
-                            return;
-                        }
+					const rows =
+						text
+							.split(/\r?\n/)
+							.filter(
+								r => r.trim() !== ""
+							);
 
-                        book[header] = values[index] ? values[index].trim() : null;
-                    });
+					for (
+						let i = 0;
+						i < rows.length;
+						i++
+					) {
 
-                    books.push(book);
-                }
+						const values =
+							rows[i].split(",");
 
-                const { error } = await client.from("Books1").insert(books);
+						books.push({
 
-                if (error) {
-                    alert(error.message);
-                    console.error(error);
-                    return;
-                }
+							title:
+								values[0]
+								? values[0].trim()
+								: null,
 
-                alert(books.length + " books imported successfully");
+							author:
+								values[1]
+								? values[1].trim()
+								: null,
 
-            }
+							language:
+								values[2]
+								? values[2].trim()
+								: null,
+
+							section:
+								values[3]
+								? values[3].trim()
+								: null,
+
+							isbn:
+								values[4]
+								? values[4].trim()
+								: null,
+
+							notes:
+								values[5]
+								? values[5].trim()
+								: null
+
+						});
+
+					}
+				}
+
+				if (books.length === 0) {
+
+					alert(
+						"No books found in selected files"
+					);
+
+					return;
+				}
+
+				const { error } =
+					await client
+						.from("Books1")
+						.insert(books);
+
+				if (error) {
+
+					alert(
+						error.message
+					);
+
+					console.error(error);
+
+					return;
+				}
+
+				alert(
+					books.length +
+					" books imported successfully"
+				);
+
+				document
+					.getElementById("csvFile")
+					.value = "";
+
+				await loadLanguages();
+
+				searchBooks();
+			}
 						
 			document
 				.getElementById("searchText")
