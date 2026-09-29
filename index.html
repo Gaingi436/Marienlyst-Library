@@ -132,6 +132,28 @@
                     <li>Import CSV below.</li>
                 </ol>
             </div>
+				<h3>Paste CSV Text</h3>
+
+				<textarea
+					id="csvText"
+					rows="10"
+					style="
+						width:100%;
+						box-sizing:border-box;
+						margin-top:10px;
+						margin-bottom:10px;
+						font-family:monospace;
+					"
+					placeholder="Paste CSV text here...">
+				</textarea>
+
+				<button
+					class="import-btn"
+					onclick="importTextCsv()">
+					Import Text
+				</button>
+
+				<hr>			
             <div class="csv-import">
                 <input type="file" id="csvFile" accept=".csv" /><button class="import-btn" onclick="importCsv()">
                     Import CSV
@@ -179,7 +201,7 @@
 
 				navigator.clipboard.writeText(
 					"Use the instructions contained in this document:\n" +
-					"https://gaingi436.github.io/Marienlyst-Library/AIprompt.html" +
+					"https://gaingi436.github.io/Marienlyst-Library/AIprompt.html  \n" +
 					"Apply them to the attached image."
 				);
 
@@ -408,6 +430,110 @@
 
                 searchBooks();
             }
+
+
+			async function importTextCsv() {
+
+				const text =
+					document
+						.getElementById("csvText")
+						.value
+						.trim();
+
+				if (text === "") {
+
+					alert("Paste some CSV text first");
+					return;
+				}
+
+				const rows =
+					text
+						.split(/\r?\n/)
+						.filter(
+							r => r.trim() !== ""
+						);
+
+				const books = [];
+
+				let startRow = 0;
+
+				if (
+					rows[0]
+						.toLowerCase()
+						.startsWith("title,")
+				) {
+
+					startRow = 1;
+				}
+
+				for (
+					let i = startRow;
+					i < rows.length;
+					i++
+				) {
+
+					const values =
+						rows[i]
+							.split(",");
+
+					books.push({
+
+						title:
+							values[0]
+							? values[0].trim()
+							: null,
+
+						author:
+							values[1]
+							? values[1].trim()
+							: null,
+
+						language:
+							values[2]
+							? values[2].trim()
+							: null,
+
+						section:
+							values[3]
+							? values[3].trim()
+							: null,
+
+						isbn:
+							values[4]
+							? values[4].trim()
+							: null,
+
+						notes:
+							values[5]
+							? values[5].trim()
+							: null
+
+					});
+
+				}
+
+				const { error } =
+					await client
+						.from("Books1")
+						.insert(books);
+
+				if (error) {
+
+					alert(error.message);
+					return;
+				}
+
+				alert(
+					books.length +
+					" books imported"
+				);
+
+				document
+					.getElementById("csvText")
+					.value = "";
+
+				await loadLanguages();
+			}
 
             async function importCsv() {
                 const file = document.getElementById("csvFile").files[0];
