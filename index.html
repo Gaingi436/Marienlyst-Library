@@ -103,9 +103,18 @@
         <h1>📚 Library Catalog</h1>
 
         <div id="accessPanel">
-            <input type="password" id="accessCode" placeholder="Library Access Code" /><button onclick="unlockAdmin()">
-                Access
-            </button>
+			<form onsubmit="unlockAdmin(); return false;">
+
+				<input
+					type="password"
+					id="accessCode"
+					placeholder="Library Access Code">
+
+				<button type="submit">
+					Access
+				</button>
+
+			</form>
         </div>
         <div id="adminPanel" class="admin-panel" style="display: none">
             <strong>Administrator Mode</strong>
@@ -128,8 +137,8 @@
                     <li>Upload the image.</li>
                     <li>Use "Copy Prompt for AI" to paste AI prompt with the image.</li>
                     <li>Provide section code when asked.</li>
-                    <li>Save generated CSV.</li>
-                    <li>Import CSV below.</li>
+                    <li>Save generated CSV or copy text at video.</li>
+                    <li>Import CSV below as file or paste as text.</li>
                 </ol>
             </div>
 				<h3>Paste CSV Text</h3>
@@ -202,7 +211,7 @@
 				navigator.clipboard.writeText(
 					"Read and follow the instructions at this link:\n" +
 					"https://gaingi436.github.io/Marienlyst-Library/AIprompt.html  \n" +
-					"Task: Analyze the attached photo as a data source to identify the books.\n"
+					"Task: Analyze the attached photo as a data source to identify the books.\n" +
 				    "Important: Do NOT generate, edit, or create any images. Provide text output only."				
 				);
 
