@@ -19,7 +19,6 @@ Identify the language of each book using standardized 2-letter uppercase codes (
   ES = Spanish
   FR = French
   DE = German
-  SE = Swedish
 - If you are unable to identify the language with reasonable confidence, use "NOT".
 
 If the title or author cannot be identified with reasonable certainty, do not invent information.
@@ -41,6 +40,9 @@ When I reply with a section code (such as "B1", "A01", "F01"):
 STEP 3:
 If I reply "Yes" or "Si":
 - Generate and provide a downloadable CSV file.
+- Name the file using the following exact format:
+  Biblio_<section>_<YYYYMMDD-HHMM>.csv
+  (Example: Biblio_B1_20260929-1252.csv)
 - Use UTF-8 encoding with BOM (UTF-8-SIG) so special characters and accents (e.g., ä, é, ö, Å) render correctly in Microsoft Excel.
 
 CSV FORMAT:
