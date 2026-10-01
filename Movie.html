@@ -187,8 +187,8 @@
                 error
             } = await client.from('DVDMovieView').select('*').order(sort);
             if (error) return;
-            if (title) data = data.filter(x => (x.title || '').toLowerCase().includes(title.toLowerCase()));
-            if (actor) data = data.filter(x => (x.actors || '').toLowerCase().includes(actor.toLowerCase()));
+            if (title) data = data.filter(x => (x.title || '').normalizeText().includes(title.normalizeText()));
+            if (actor) data = data.filter(x => (x.actors || '').normalizeText().includes(actor.normalizeText()));
             if (country) data = data.filter(x => x.country === country);
             document.getElementById('bookCount').innerHTML = 'Movies found: ' + data.length;
             let html = '';
