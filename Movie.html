@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Catalog</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #f7f7f7
+        }
+
+        input,
+        select,
+        button,
+        textarea {
+            padding: 10px
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        #titleSearch,
+        #actorSearch {
+            flex: 1
+        }
+
+        .card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0
+        }
+
+        .admin {
+            background: #fff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px
+        }
+
+        .hidden {
+            display: none
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🎬 Movie Catalog</h1>
+    <div id="accessPanel">
+        <input type="password" id="accessCode" placeholder="Access code">
+        <button onclick="unlockAdmin()">Access</button>
+    </div>
+    <div id="adminPanel" class="admin hidden">
+        <b>Administrator Mode</b><br><br>
+        <a href="#" onclick="copyPrompt();return false;">Copy Prompt for AI</a> |
+        <a href="https://github.com/Gaingi436/Marienlyst-Library/blob/main/book-spine-extraction-prompt.txt" target="_blank">Open Complex Prompt</a>
+        <br><br>
+        <textarea id="jsonText" rows="10" style="width:100%" placeholder="Paste JSON here"></textarea><br>
+        <button onclick="importJson()">Import JSON</button>
+    </div>
+    <div class="toolbar">
+        <input id="titleSearch" placeholder="Movie title">
+        <input id="actorSearch" placeholder="Actor">
+        <select id="countryFilter">
+            <option value="">All Countries</option>
+        </select>
+        <select id="sortBy">
+            <option value="title">Title</option>
+            <option value="year">Year</option>
+            <option value="country">Country</option>
+        </select>
+    </div>
+    <div id="bookCount">Enter a search term</div>
+    <div id="results"></div>
+    <script>
+        let isAdmin = false;
+        const supabaseUrl = 'https://baixuvdynobyomwpklmr.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhaXh1dmR5bm9ieW9td3BrbG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyMzk3OTUsImV4cCI6MjEwNTgxNTc5NX0.Jg9QDyV9YvCo15P8cO5LuKjjdN_-KAdMrNGhTxKhsEg';
+        const client = supabase.createClient(supabaseUrl, supabaseKey);
+
+        function copyPrompt() {
+            navigator.clipboard.writeText('Return ONLY JSON.');
+            alert('Prompt copied');
+        }
+
+        function unlockAdmin() {
+            const code = document.getElementById('accessCode').value.trim().toUpperCase();
+            if (code === 'MSMK') {
+                isAdmin = true;
+                document.getElementById('accessPanel').style.display = 'none';
+                document.getElementById('adminPanel').classList.remove('hidden');
+            } else alert('Invalid Access Code');
+        }
+        async function loadCountries() {
+            const {
+                data
+            } = await client.from('DVDCountries').select('*');
+            const s = document.getElementById('countryFilter');
+            data?.forEach(r => {
+                let o = document.createElement('option');
+                o.value = r.country;
+                o.textContent = r.country;
+                s.appendChild(o);
+            });
+        }
+        async function importJson() {
+            let txt = document.getElementById('jsonText').value.trim();
+            if (!txt) return;
+            let movies = JSON.parse(txt);
+            for (const m of movies) {
+                const {
+                    error
+                } = await client.rpc('dvd_import_film', {
+                    p_title: m.title,
+                    p_year: m.year,
+                    p_country: m.country,
+                    p_format: m.format,
+                    p_actors: m.actors || []
+                });
+                if (error) {
+                    alert(error.message);
+                    return;
+                }
+            }
+            alert(movies.length + ' movies imported');
+            loadCountries();
+        }
+        async function searchMovies() {
+            const title = document.getElementById('titleSearch').value.trim();
+            const actor = document.getElementById('actorSearch').value.trim();
+            const country = document.getElementById('countryFilter').value;
+            const sort = document.getElementById('sortBy').value;
+            if (title === '' && actor === '' && country === '') {
+                document.getElementById('results').innerHTML = '';
+                document.getElementById('bookCount').innerHTML = 'Enter a search term';
+                return;
+            }
+            let {
+                data,
+                error
+            } = await client.from('DVDMovieView').select('*').order(sort);
+            if (error) return;
+            if (title) data = data.filter(x => (x.title || '').toLowerCase().includes(title.toLowerCase()));
+            if (actor) data = data.filter(x => (x.actors || '').toLowerCase().includes(actor.toLowerCase()));
+            if (country) data = data.filter(x => x.country === country);
+            document.getElementById('bookCount').innerHTML = 'Movies found: ' + data.length;
+            let html = '';
+            data.forEach(m => {
+                html += `<div class="card"><h2>${m.title}</h2><p><b>Year:</b> ${m.year||''}<br><b>Country:</b> ${m.country||''}<br><b>Format:</b> ${m.format||''}</p><p><b>Actors:</b><br>${m.actors||''}</p>${isAdmin?`<button onclick="deleteMovie(${m.id})">Delete</button>`:''}</div>`
+            });
+            document.getElementById('results').innerHTML = html;
+        }
+        async function deleteMovie(id) {
+            if (!confirm('Delete movie?')) return;
+            const {
+                error
+            } = await client.from('DVDFilms').delete().eq('id', id);
+            if (error) {
+                alert(error.message);
+                return;
+            }
+            searchMovies();
+        }
+        document.getElementById('titleSearch').addEventListener('input', searchMovies);
+        document.getElementById('actorSearch').addEventListener('input', searchMovies);
+        document.getElementById('countryFilter').addEventListener('change', searchMovies);
+        document.getElementById('sortBy').addEventListener('change', searchMovies);
+        document.getElementById('accessCode').addEventListener('keydown', e => {
+            if (e.key === 'Enter') unlockAdmin();
+        });
+        loadCountries();
+    </script>
+</body>
+
+</html>
