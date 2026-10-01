@@ -56,7 +56,7 @@
 </head>
 
 <body>
-    <h1>🎬 Movie Catalog</h1>
+    <h1>🎬 Marienlyst Movie Catalog</h1>
     <div id="accessPanel">
         <input type="password" id="accessCode" placeholder="Access code">
         <button onclick="unlockAdmin()">Access</button>
@@ -64,14 +64,30 @@
     <div id="adminPanel" class="admin hidden">
         <b>Administrator Mode</b><br><br>
         <a href="#" onclick="copyPrompt();return false;">Copy Prompt for AI</a> |
-        <a href="https://github.com/Gaingi436/Marienlyst-Library/blob/main/book-spine-extraction-prompt.txt" target="_blank">Open Complex Prompt</a>
+        <a href="https://github.com/Gaingi436/Marienlyst-Library/blob/main/dvd-spine-extraction-prompt.txt" target="_blank">Open Complex Prompt</a>
+		|
+        <a href="#" id="helpToggle" onclick="toggleHelp();return false;">Show More</a>
+		
+		    <div id="helpSection" class="help-section" style="display: none">
+                <h3>How to import movies using AI</h3>
+                <ol>
+                    <li>Take a photo of DVD/Bluray spines.</li>
+                    <li>Open an AI application.</li>
+                    <li>Upload the image.</li>
+                    <li>Use "Copy Prompt for AI" to paste AI prompt with the image.</li>
+                    <li>Provide section code when asked.</li>
+                    <li>Copy text at video.</li>
+                    <li>Paste as text (JSON) in the box below.</li>
+                </ol>
+            </div>
+			
         <br><br>
         <textarea id="jsonText" rows="10" style="width:100%" placeholder="Paste JSON here"></textarea><br>
         <button onclick="importJson()">Import JSON</button>
     </div>
     <div class="toolbar">
         <input id="titleSearch" placeholder="Movie title">
-        <input id="actorSearch" placeholder="Actor">
+        <input id="actorSearch" placeholder="Actor/Director">
         <select id="countryFilter">
             <option value="">All Countries</option>
         </select>
@@ -89,10 +105,29 @@
         const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhaXh1dmR5bm9ieW9td3BrbG1yIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAyMzk3OTUsImV4cCI6MjEwNTgxNTc5NX0.Jg9QDyV9YvCo15P8cO5LuKjjdN_-KAdMrNGhTxKhsEg';
         const client = supabase.createClient(supabaseUrl, supabaseKey);
 
-        function copyPrompt() {
-            navigator.clipboard.writeText('Return ONLY JSON.');
-            alert('Prompt copied');
-        }
+		function copyPrompt() {
+
+			navigator.clipboard.writeText(
+				"Read and follow the instructions at this link:\n" +
+				"https://gaingi436.github.io/Marienlyst-Library/DVDAIprompt.html  \n" +
+				"Task: Analyze the attached photo as a data source to identify the movies.\n" +
+				"Important: Do NOT generate, edit, or create any images. Provide text output only."				
+			);
+
+			alert("Prompt copied");
+		}
+		
+		function toggleHelp() {
+			const h=document.getElementById('helpSection');
+			const t=document.getElementById('helpToggle');
+			
+			if(h.style.display==='none'){
+				h.style.display='block';
+				t.textContent='Show Less';
+			}else{
+				h.style.display='none';t.textContent='Show More';
+			}
+		}		
 
         function unlockAdmin() {
             const code = document.getElementById('accessCode').value.trim().toUpperCase();
