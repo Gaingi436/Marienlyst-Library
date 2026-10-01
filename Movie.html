@@ -137,6 +137,16 @@
                 document.getElementById('adminPanel').classList.remove('hidden');
             } else alert('Invalid Access Code');
         }
+		
+		function normalizeText(text) {
+
+			return (text || "")
+				.normalize("NFD")
+				.replace(/[\u0300-\u036f]/g, "")
+				.toLowerCase();
+
+		}
+		
         async function loadCountries() {
             const {
                 data
@@ -172,6 +182,7 @@
             alert(movies.length + ' movies imported');
             loadCountries();
         }
+		
         async function searchMovies() {
             const title = document.getElementById('titleSearch').value.trim();
             const actor = document.getElementById('actorSearch').value.trim();
@@ -187,8 +198,31 @@
                 error
             } = await client.from('DVDMovieView').select('*').order(sort);
             if (error) return;
-            if (title) data = data.filter(x => (x.title || '').normalizeText().includes(title.normalizeText()));
-            if (actor) data = data.filter(x => (x.actors || '').normalizeText().includes(actor.normalizeText()));
+            
+			if (title) {
+
+				data = data.filter(
+					x =>
+						normalizeText(
+							x.title || ''
+						).includes(
+							normalizeText(title)
+						)
+				);
+			}
+
+			if (actor) {
+
+				data = data.filter(
+					x =>
+						normalizeText(
+							x.actors || ''
+						).includes(
+							normalizeText(actor)
+						)
+				);
+			}
+			
             if (country) data = data.filter(x => x.country === country);
             document.getElementById('bookCount').innerHTML = 'Movies found: ' + data.length;
             let html = '';
