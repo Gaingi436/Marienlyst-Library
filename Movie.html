@@ -126,6 +126,7 @@
                     p_year: m.year,
                     p_country: m.country,
                     p_format: m.format,
+					p_section:m.section,
                     p_actors: m.actors || []
                 });
                 if (error) {
@@ -157,7 +158,7 @@
             document.getElementById('bookCount').innerHTML = 'Movies found: ' + data.length;
             let html = '';
             data.forEach(m => {
-                html += `<div class="card"><h2>${m.title}</h2><p><b>Year:</b> ${m.year||''}<br><b>Country:</b> ${m.country||''}<br><b>Format:</b> ${m.format||''}</p><p><b>Actors:</b><br>${m.actors||''}</p>${isAdmin?`<button onclick="deleteMovie(${m.id})">Delete</button>`:''}</div>`
+                html += `<div class="card"><h2>${m.title}</h2><p><b>Year:</b> ${m.year||''}<br><b>Country:</b> ${m.country||''}<br><b>Format:</b> ${m.format||''}<br><b>Section:</b> ${m.section || ''}</p><p><b>Actors:</b><br>${m.actors||''}</p>${isAdmin?`<button onclick="deleteMovie(${m.id})">Delete</button>`:''}</div>`
             });
             document.getElementById('results').innerHTML = html;
         }
