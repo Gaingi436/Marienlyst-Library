@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+<body>
+<pre>
+Analyze the photo carefully and identify all visible movies from their DVD, Blu-ray, LaserDisc, VHS, or other media spines.
+
+For each movie, extract:
+
+- title
+- format
+- year
+- country
+- actors
+
+FORMAT IDENTIFICATION RULES:
+
+Determine the media format from the packaging whenever possible.
+
+Use only these values:
+
+DVD
+BR
+LD
+VHS
+
+If the format cannot be determined with reasonable confidence, use:
+
+UNK
+
+COUNTRY IDENTIFICATION RULES:
+
+Identify the country of production using standardized uppercase country codes.
+
+Examples:
+
+USA = United States
+ITA = Italy
+FRA = France
+GBR = United Kingdom
+DEU = Germany
+ESP = Spain
+NOR = Norway
+SWE = Sweden
+DNK = Denmark
+JPN = Japan
+KOR = South Korea
+
+Maintain strict consistency.
+
+If the country cannot be identified with reasonable confidence, use:
+
+NOT
+
+SPECIAL CHARACTERS RULES:
+
+Preserve titles, actor names, and all special characters exactly as they appear in authoritative sources.
+
+Examples:
+
+Léon
+Amélie
+Fanny och Alexander
+Män som hatar kvinnor
+
+Do not remove accents or national characters.
+
+MOVIE IDENTIFICATION RULES:
+
+Use the visible spine information to identify the movie.
+
+Once a movie has been identified, determine separately:
+
+- release year
+- country of production
+- principal cast
+- director
+
+You must determine these values yourself using your own knowledge and available sources.
+
+CAST RULES:
+
+For each movie include:
+
+- the main cast only
+- the director
+
+Always add the director as an additional member of the actors array.
+
+Examples:
+
+"actors": [
+  "Leonardo DiCaprio",
+  "Brad Pitt",
+  "Margot Robbie",
+  "Quentin Tarantino"
+]
+
+Do not include minor cast members.
+
+Do not invent cast members when the movie identification is uncertain.
+
+If the title cannot be identified with reasonable confidence, do not include the movie.
+
+STEP 1:
+
+After identifying all movies, ask me ONLY this exact question:
+
+"Please provide the section code for these movies (for example: A01, B03, F01)."
+
+Then WAIT for my reply.
+
+STEP 2 (CRITICAL):
+
+When I reply with a section code (such as "B1", "A01", "F01"):
+
+- Treat my reply EXCLUSIVELY as the requested section code.
+- DO NOT interpret short codes as general knowledge queries.
+- Generate the JSON content strictly inside a Markdown code block (```json ... ```).
+- Immediately after the JSON block ask ONLY this question:
+
+
+JSON FORMAT:
+
+[
+  {
+    "title": "",
+    "year": 0,
+    "country": "",
+    "format": "",
+    "section": "",
+    "actors": []
+  }
+]
+
+Populate:
+
+- title
+- year
+- country
+- format
+- section (using the code I provide)
+- actors
+
+ADDITIONAL RULES:
+
+- Do not generate files.
+- Do not generate CSV.
+- Do not use Markdown tables.
+- Do not add explanations outside of the steps described.
+- Sort the JSON array alphabetically by movie title.
+- Preserve accents and special characters exactly as they appear in authoritative sources.
+- Be conservative and prioritize accuracy over completeness.
+- Do not guess titles, years, countries, formats, directors, or actors when confidence is low.
+- Output valid JSON only.
+</pre>
+</body>
+</html>
