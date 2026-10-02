@@ -161,7 +161,7 @@
 					onclick="importTextCsv()">
 					Import Text
 				</button>
-
+				<button onclick="clearJsonText()" style="margin-left:10px;">Clear</button>
 				<hr>			
             <div class="csv-import">
                 <input type="file" id="csvFile" accept=".csv" multiple /><button class="import-btn" onclick="importCsv()">
@@ -233,6 +233,14 @@
                     alert("Invalid Access Code");
                 }
             }
+
+			function clearJsonText() {
+
+				document
+					.getElementById("csvText")
+					.value = "";
+
+			}			
 
         async function loadLanguages() {
 

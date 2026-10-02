@@ -84,6 +84,7 @@
         <br><br>
         <textarea id="jsonText" rows="10" style="width:100%" placeholder="Paste JSON here"></textarea><br>
         <button onclick="importJson()">Import JSON</button>
+		<button onclick="clearJsonText()" style="margin-left:10px;">Clear</button>
     </div>
     <div class="toolbar">
         <input id="titleSearch" placeholder="Movie title">
@@ -146,6 +147,14 @@
 				.toLowerCase();
 
 		}
+
+		function clearJsonText() {
+
+			document
+				.getElementById("jsonText")
+				.value = "";
+
+		}		
 		
         async function loadCountries() {
             const {
